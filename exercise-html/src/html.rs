@@ -1,7 +1,7 @@
 use crate::dom::{AttrMap, Element, Node};
 use combine::error::ParseError;
-use combine::parser::char::{char, letter, space, newline};
-use combine::{parser, Parser, Stream, many1, many, between, satisfy, sep_by};
+use combine::parser::char::{char, letter, newline, space};
+use combine::{between, many, many1, parser, satisfy, sep_by, Parser, Stream};
 
 /// `attribute` consumes `name="value"`.
 fn attribute<Input>() -> impl Parser<Input, Output = (String, String)>
@@ -10,11 +10,15 @@ where
     Input::Error: ParseError<Input::Token, Input::Range, Input::Position>,
 {
     (
-        many1::<String, _, _>(letter()), // まずは属性の名前を何文字か読む
+        many1(letter()),                             // まずは属性の名前を何文字か読む
         many::<String, _, _>(space().or(newline())), // 空白と改行を読み飛ばす
-        char('='), // = を読む
+        char('='),                                   // = を読む
         many::<String, _, _>(space().or(newline())), // 空白と改行を読み飛ばす
-        between(char('"'), char('"'), many1::<String, _, _>(satisfy(|c: char| c != '"'))), // 引用符の間の、引用符を含まない文字を読む
+        between(
+            char('"'),
+            char('"'),
+            many1::<String, _, _>(satisfy(|c: char| c != '"')),
+        ), // 引用符の間の、引用符を含まない文字を読む
     )
         .map(|v| (v.0, v.4)) // はじめに読んだ属性の名前と、最後に読んだ引用符の中の文字列を結果として返す
 }
@@ -25,14 +29,13 @@ where
     Input: Stream<Token = char>,
     Input::Error: ParseError<Input::Token, Input::Range, Input::Position>,
 {
-    sep_by::<Vec<(String, String)>, _, _, _>(
-        attribute(),
-        many::<String, _, _>(space().or(newline())),
+    // sep_by::<Vec<(String, String)>, _, _, _>(
+    sep_by(attribute(), many::<String, _, _>(space().or(newline()))).map(
+        |attrs: Vec<(String, String)>| {
+            let m: AttrMap = attrs.into_iter().collect();
+            m
+        },
     )
-    .map(|attrs: Vec<(String, String)>| {
-        let m: AttrMap = attrs.into_iter().collect();
-        m
-    })
 }
 
 /// `open_tag` consumes `<tag_name attr_name="attr_value" ...>`.
@@ -41,8 +44,14 @@ where
     Input: Stream<Token = char>,
     Input::Error: ParseError<Input::Token, Input::Range, Input::Position>,
 {
-    todo!("you need to implement this combinator");
-    (char(' ')).map(|_| ("".to_string(), AttrMap::new()))
+    let open_tag_name = many1(letter());
+    let open_tag_content = (
+        open_tag_name,
+        many::<String, _, _>(space().or(newline())),
+        attributes(),
+    )
+        .map(|v: (String, _, AttrMap)| (v.0, v.2));
+    between(char('<'), char('>'), open_tag_content)
 }
 
 /// close_tag consumes `</tag_name>`.
