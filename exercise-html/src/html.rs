@@ -60,8 +60,9 @@ where
     Input: Stream<Token = char>,
     Input::Error: ParseError<Input::Token, Input::Range, Input::Position>,
 {
-    todo!("you need to implement this combinator");
-    (char(' ')).map(|_| ("".to_string()))
+    let close_tag_name = many1::<String,_,_>(letter());
+    let close_tag_content = (char('/'), close_tag_name).map(|v|v.1);
+    between(char('<'), char('>'), close_tag_content)
 }
 
 // `nodes_` (and `nodes`) tries to parse input as Element or Text.
@@ -182,7 +183,7 @@ mod tests {
     #[test]
     fn test_parse_close_tag() {
         let result = close_tag().parse("</p>");
-        assert_eq!(result, Ok(("p".to_string(), "")))
+        assert_eq!(result, Ok(("p".to_string(), "")));
     }
 
     #[test]
