@@ -1,5 +1,5 @@
 use combine::{
-    choice,
+    between, choice,
     error::StreamError,
     many, many1, optional,
     parser::char::{self, char, letter, newline, space, spaces},
@@ -103,11 +103,16 @@ where
     Input: Stream<Token = char>,
     Input::Error: ParseError<Input::Token, Input::Range, Input::Position>,
 {
-    todo!("you need to implement this");
-    (char(' '),).map(|_| Rule {
-        selectors: vec![],
-        declarations: vec![],
-    })
+    (
+        selectors().skip(spaces()),
+        char::char('{').skip(spaces()),
+        declarations().skip(spaces()),
+        char::char('}'),
+    )
+        .map(|(selectors, _, declarations, _)| Rule {
+            selectors: selectors,
+            declarations: declarations,
+        })
 }
 
 fn selectors<Input>() -> impl Parser<Input, Output = Vec<Selector>>
