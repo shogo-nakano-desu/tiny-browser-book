@@ -94,8 +94,7 @@ where
     Input: Stream<Token = char>,
     Input::Error: ParseError<Input::Token, Input::Range, Input::Position>,
 {
-    todo!("you need to implement this");
-    (char(' ')).map(|_| vec![])
+    (spaces(), many(rule().skip(spaces()))).map(|(_, rules)| rules)
 }
 
 fn rule<Input>() -> impl Parser<Input, Output = Rule>
