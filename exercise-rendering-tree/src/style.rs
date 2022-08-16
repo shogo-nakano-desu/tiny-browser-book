@@ -26,7 +26,33 @@ pub struct StyledNode<'a> {
 }
 
 pub fn to_styled_node<'a>(node: &'a Box<Node>, stylesheet: &Stylesheet) -> Option<StyledNode<'a>> {
-    todo!("you need to implement this")
+    let mut properties: HashMap<String, CSSValue> = [].iter().cloned().collect();
+
+    // order of appearance のみを考慮した filtering & cascading
+    for matched_rule in stylesheet.rules.iter().filter(|r| r.matches(node)) {
+        for declaration in &matched_rule.declarations {
+            properties.insert(declaration.name.clone(), declaration.value.clone());
+        }
+    }
+
+    // defaulting は一旦考慮しないことにしていたのでスキップ
+
+    // display: none が指定されているノードはレンダリングツリーに含めない
+    if properties.get("display") == Some(&CSSValue::Keyword("none".into())) {
+        return None;
+    }
+
+    let children = node
+        .children
+        .iter()
+        .filter_map(|x| to_styled_node(x, stylesheet))
+        .collect();
+
+    Some(StyledNode {
+        node_type: &node.node_type,
+        properties,
+        children,
+    })
 }
 
 impl<'a> StyledNode<'a> {
@@ -41,6 +67,7 @@ impl<'a> StyledNode<'a> {
         }
     }
 }
+
 
 #[cfg(test)]
 mod tests {

@@ -64,9 +64,9 @@ pub enum SimpleSelector {
 
 impl SimpleSelector {
     pub fn matches(&self, n: &Box<Node>) -> bool {
-       match self {
-        SimpleSelector::UniversalSelector => true,
-        SimpleSelector::TypeSelector { tag_name } => match n.node_type {
+        match self {
+            SimpleSelector::UniversalSelector => true,
+            SimpleSelector::TypeSelector { tag_name } => match n.node_type {
                 NodeType::Element(ref e) => e.tag_name.as_str() == tag_name,
                 _ => false,
             },
@@ -98,7 +98,7 @@ impl SimpleSelector {
                 NodeType::Element(ref e) => e.attributes.get("class") == Some(class_name),
                 _ => false,
             },
-       } 
+        }
     }
 }
 
@@ -500,7 +500,7 @@ mod tests {
     }
 
     #[test]
-    fn test_universal_selector_behaviour() {
+    fn test_universal_selector_behavior() {
         let e = &Element::new(
             "p".to_string(),
             [
@@ -516,7 +516,7 @@ mod tests {
     }
 
     #[test]
-    fn test_type_selector_behaviour() {
+    fn test_type_selector_behavior() {
         let e = &Element::new(
             "p".to_string(),
             [
@@ -547,7 +547,7 @@ mod tests {
     }
 
     #[test]
-    fn test_attribute_selector_behaviour() {
+    fn test_attribute_selector_behavior() {
         let e = &Element::new(
             "p".to_string(),
             [
@@ -606,7 +606,7 @@ mod tests {
     }
 
     #[test]
-    fn test_class_selector_behaviour() {
+    fn test_class_selector_behavior() {
         let e = &Element::new(
             "p".to_string(),
             [
